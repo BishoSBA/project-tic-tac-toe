@@ -1,7 +1,17 @@
+const players = (play) => {
+	return {
+		score: 0,
+		play: play,
+	};
+};
+
+const player1 = players("X");
+const player2 = players("O");
+
 const gameBoard = (() => {
 	const board = new Array(9);
 
-	const set = (play, index) => {
+	const set = (index, play) => {
 		board[index] = play;
 	};
 
@@ -15,21 +25,26 @@ const gameBoard = (() => {
 		}
 	};
 
-	const cells = [];
-	for (let i = 0; i < 9; i++) {
-		cells[i] = document.getElementById(i);
-		cells[i].onClick((e) => {
-			displayController.addPlay(e);
-		});
-	}
+	return {
+		set,
+		get,
+		reset,
+		board,
+	};
 })();
 
 const displayController = (() => {
 	const cells = new Array(9);
+	const player1Score = document.getElementById("player1");
+	const player2Score = document.getElementById("player2");
 
-	const addPlay = (e) => {
-		currentPlayer.play;
-	};
+	for (let i = 0; i < 9; i++) {
+		cells[i] = document.getElementById("cell" + i);
+
+		cells[i].addEventListener("click", (e) => {
+			gameController.addPlay(e.target.id);
+		});
+	}
 
 	const update = () => {
 		const htmlBoard = document.querySelector("main");
@@ -40,12 +55,38 @@ const displayController = (() => {
 	};
 
 	//Stopped in connecting scoreboard to variables to update in endgame
-	const updateScore = () => {};
+	const updateScore = () => {
+		player1Score.textContent = player1.score;
+		player2Score.textContent = player2.score;
+		update();
+	};
+	return {
+		update,
+		updateScore,
+	};
 })();
 
-const gameController = () => {
-	const currentPlayer = player1;
+const gameController = (() => {
+	let currentPlayer = player1;
 	const board = gameBoard.board;
+
+	const addPlay = (id) => {
+		const index = id.slice(-1);
+		if (!board[index]) {
+			board[index] = currentPlayer.play;
+		} else {
+			return;
+		}
+		displayController.update();
+		checkGameEnd();
+		switchPlayer(currentPlayer);
+	};
+
+	const switchPlayer = (Player) => {
+		Player == player1
+			? (currentPlayer = player2)
+			: (currentPlayer = player1);
+	};
 
 	const checkGameEnd = () => {
 		if (
@@ -105,22 +146,20 @@ const gameController = () => {
 		}
 	};
 
-	const endgame = (player) => {
+	const endGame = (player) => {
 		player.score++;
+		game();
 		displayController.updateScore();
 	};
-};
 
-const players = (play) => {
-	return {
-		score: 0,
-		play: play,
+	const game = () => {
+		gameBoard.reset();
 	};
-};
 
-const game = () => {
-	gameBoard.reset();
-};
-
-const player1 = players("X");
-const player2 = players("O");
+	return {
+		addPlay,
+		checkGameEnd,
+		endGame,
+		game,
+	};
+})();
