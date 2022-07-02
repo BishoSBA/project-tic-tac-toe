@@ -37,6 +37,8 @@ const displayController = (() => {
 	const cells = new Array(9);
 	const player1Score = document.getElementById("player1");
 	const player2Score = document.getElementById("player2");
+	const winnerDisplay = document.querySelector(".winnerDisplay");
+	const playButton = document.querySelector(".buttonDiv button");
 
 	for (let i = 0; i < 9; i++) {
 		cells[i] = document.getElementById("cell" + i);
@@ -45,6 +47,10 @@ const displayController = (() => {
 			gameController.addPlay(e.target.id);
 		});
 	}
+
+	playButton.addEventListener("click", () => {
+		gameController.game();
+	});
 
 	const update = () => {
 		const htmlBoard = document.querySelector("main");
@@ -55,14 +61,16 @@ const displayController = (() => {
 	};
 
 	//Stopped in connecting scoreboard to variables to update in endgame
-	const updateScore = () => {
+	const updateScore = (player) => {
 		player1Score.textContent = player1.score;
 		player2Score.textContent = player2.score;
+		winnerDisplay.textContent = `player: ${player.play} Wins!`;
 		update();
 	};
 	return {
 		update,
 		updateScore,
+		winnerDisplay,
 	};
 })();
 
@@ -78,8 +86,8 @@ const gameController = (() => {
 			return;
 		}
 		displayController.update();
-		checkGameEnd();
 		switchPlayer(currentPlayer);
+		checkGameEnd();
 	};
 
 	const switchPlayer = (Player) => {
@@ -89,6 +97,7 @@ const gameController = (() => {
 	};
 
 	const checkGameEnd = () => {
+		switchPlayer(currentPlayer);
 		if (
 			board[0] == board[1] &&
 			board[1] == board[2] &&
@@ -143,17 +152,39 @@ const gameController = (() => {
 			board[6] == currentPlayer.play
 		) {
 			endGame(currentPlayer);
+		} else if (
+			board[0] &&
+			board[1] &&
+			board[2] &&
+			board[3] &&
+			board[4] &&
+			board[5] &&
+			board[6] &&
+			board[7] &&
+			board[8]
+		) {
+			endGame("draw");
 		}
+
+		switchPlayer(currentPlayer);
 	};
 
 	const endGame = (player) => {
+		if (player == "draw") {
+			game();
+			displayController.winnerDisplay.textContent = `Game ended in a Draw`;
+			return;
+		}
 		player.score++;
 		game();
-		displayController.updateScore();
+		displayController.updateScore(player);
 	};
 
 	const game = () => {
+		currentPlayer = player1;
 		gameBoard.reset();
+		displayController.winnerDisplay.textContent = "";
+		displayController.update();
 	};
 
 	return {
